@@ -1,0 +1,34 @@
+###
+PUT http://localhost:8080/api/admin/points/policies
+Content-Type: application/json
+X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
+
+{
+    "maxEarnAmount" : 5000
+}
+
+
+########################################
+
+PUT http://localhost:8080/api/admin/points/policies
+Content-Type: application/json
+
+{
+  "maxEarnAmount" : 10000,
+  "maxPossessionLimit" : 99999,
+  "defaultExpireDays" : 256
+}
+###############################################
+
+
+PUT http://localhost:8080/api/admin/points/policies
+Content-Type: application/json
+
+{
+"defaultExpireDays" : 512
+}
+##########################################
+PUT http://localhost:8080/api/admin/points/policies
+Content-Type: application/json
+
+{}

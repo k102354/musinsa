@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: point
+
+  # 1. H2 DB 설정
+  datasource:
+    url: jdbc:h2:mem:holidaydb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+      path: /h2-console  # 브라우저에서 DB 확인용
+
+  # 2. JPA 설정
+  jpa:
+    hibernate:
+      # create: 시작할 때 기존 테이블 삭제 후 새로 생성 (데이터 날아감)
+      # update: 변경된 스키마만 반영 (데이터 유지)
+      # validate: 엔티티와 테이블이 맞는지 확인만 함
+      # none: 아무것도 안 함 (수동으로 테이블 만들어야 함)
+      ddl-auto: update # 개발용
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+
+musinsa:
+  admin-key: YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
