@@ -34,11 +34,11 @@ public class PointPolicyController {
      * @param request 변경할 정책 값 (@Valid를 통해 1차 검증 수행)
      * @return 성공 여부 (CommonResponse)
      */
-    @AdminOnly // ★ 이 어노테이션 하나로 보안 적용 완료
+    @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @PutMapping
     public ResponseEntity<CommonResponse<Void>> updatePolicy(@RequestBody @Valid PointPolicyUpdateRequest request) {
         pointPolicyService.updatePolicy(request);
-        // 성공 응답: result=true, code=200, data=null
+        // 성공 응답: result=true, message="요청이 성공적으로 처리되었습니다.", code=200, data=null
         return ResponseEntity.ok(CommonResponse.success());
     }
 }
