@@ -1,7 +1,7 @@
-package com.musinsa.payment.point.api.controller;
+package com.musinsa.payment.point.api.policy.controller;
 
-import com.musinsa.payment.point.api.dto.PointPolicyUpdateRequest;
-import com.musinsa.payment.point.application.service.PointPolicyService;
+import com.musinsa.payment.point.api.policy.dto.PointPolicyUpdateRequest;
+import com.musinsa.payment.point.application.policy.service.PointPolicyService;
 import com.musinsa.payment.point.global.annotation.AdminOnly;
 import com.musinsa.payment.point.global.common.CommonResponse;
 import jakarta.validation.Valid;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
  * </p>
  */
 @RestController
-@RequestMapping("/api/admin/points/policies")
+@RequestMapping("/api/v1/admin/points/policies")
 @RequiredArgsConstructor
 public class PointPolicyController {
 

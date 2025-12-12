@@ -1,6 +1,6 @@
-package com.musinsa.payment.point.domain.repository;
+package com.musinsa.payment.point.domain.policy.repository;
 
-import com.musinsa.payment.point.domain.entity.PointPolicy;
+import com.musinsa.payment.point.domain.policy.entity.PointPolicy;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

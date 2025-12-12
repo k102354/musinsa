@@ -4,10 +4,12 @@ spring:
 
   # 1. H2 DB 설정
   datasource:
-    url: jdbc:h2:mem:holidaydb;MODE=MySQL;DB_CLOSE_DELAY=-1
+    # url: jdbc:h2:mem:musinsa;MODE=MySQL;DB_CLOSE_DELAY=-1
+    # 'mem' -> 'file'로 변경, 뒤에 경로 설정 (./는 현재 프로젝트 폴더 의미)
+    url: jdbc:h2:file:./musinsa;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    username: musinsa
+    password: musinsa
 
   h2:
     console:

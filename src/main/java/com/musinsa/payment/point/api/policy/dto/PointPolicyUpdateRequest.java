@@ -1,4 +1,4 @@
-package com.musinsa.payment.point.api.dto;
+package com.musinsa.payment.point.api.policy.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.AssertTrue;
@@ -10,14 +10,15 @@ public record PointPolicyUpdateRequest(
         @Max(value = 100_000, message = "1회 최대 적립액은 100,000원을 넘을 수 없습니다.")
         Long maxEarnAmount,
 
-        @Min(value = 1, message = "보유 한도는 1원 이상이어야 합니다.")
+        @Min(value = 1, message = "최대 소유 한도는 1원 이상이어야 합니다.")
         Long maxPossessionLimit,
 
         @Min(value = 1, message = "만료 기간은 최소 1일 이상이어야 합니다.")
         @Max(value = 1824, message = "만료 기간은 5년 미만이어야 합니다.")
         Integer defaultExpireDays
 ) {
-    // ★ 이 메서드가 'true'여야만 유효성 검사를 통과합니다.
+    
+    // 최대 적립금액, 최대 소유한도, 만료일자 중 1가지 필수 파라메터 체크 
     @JsonIgnore // Swagger나 JSON 응답에 포함되지 않도록 숨김
     @AssertTrue(message = "변경할 정책 파라미터가 최소 하나는 존재해야 합니다.")
     public boolean isAtLeastOneFieldPresent() {

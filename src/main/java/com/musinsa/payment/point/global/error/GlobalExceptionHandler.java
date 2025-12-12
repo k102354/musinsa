@@ -22,7 +22,7 @@ public class GlobalExceptionHandler {
         ErrorCode errorCode = e.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(CommonResponse.fail(errorCode.getCode(), errorCode.getMessage()));
+                .body(CommonResponse.fail(errorCode.getCode(), e.getMessage()));
     }
 
     /**
@@ -45,19 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     /**
-     * 3. IllegalArgumentException 처리
-     * 엔티티 내부 로직(validate) 등에서 던진 예외를 처리
-     */
-    @ExceptionHandler(IllegalArgumentException.class)
-    protected ResponseEntity<CommonResponse<Void>> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.warn("Illegal Argument: {}", e.getMessage());
-        return ResponseEntity
-                .status(ErrorCode.INVALID_INPUT_VALUE.getStatus())
-                .body(CommonResponse.fail(ErrorCode.INVALID_INPUT_VALUE.getCode(), e.getMessage()));
-    }
-
-    /**
-     * 4. 나머지 모든 서버 에러 (Exception) 처리
+     * 3. 나머지 모든 서버 에러 (Exception) 처리
      * 예상치 못한 에러가 사용자에게 그대로 노출되지 않도록 방어
      */
     @ExceptionHandler(Exception.class)

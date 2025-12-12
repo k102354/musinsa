@@ -1,7 +1,7 @@
 package com.musinsa.payment.point.global.policy;
 
-import com.musinsa.payment.point.domain.entity.PointPolicy;
-import com.musinsa.payment.point.domain.repository.PointPolicyRepository;
+import com.musinsa.payment.point.domain.policy.entity.PointPolicy;
+import com.musinsa.payment.point.domain.policy.repository.PointPolicyRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
