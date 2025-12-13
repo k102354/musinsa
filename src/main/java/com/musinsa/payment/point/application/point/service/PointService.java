@@ -119,7 +119,7 @@ public class PointService {
                 .orElseThrow(() -> BusinessException.notFound("지갑을 찾을 수 없습니다."));
 
         // 2. 중복 검사
-        if (pointHistoryRepository.existsByRefIdAndType(orderId, PointType.USE)) {
+        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(orderId, PointType.USE)) {
             throw BusinessException.invalid("이미 처리된 주문번호입니다.");
         }
 

@@ -15,7 +15,7 @@ public interface PointHistoryRepository extends JpaRepository<PointHistory, Long
      * 멱등성 검사
      * - 특정 주문(refId)에 대해 해당 타입(USE 등)의 처리가 이미 존재하는지 확인
      */
-    boolean existsByRefIdAndType(String refId, PointType type);
+    boolean existsByUserIdAndRefIdAndType(String refId, PointType type);
 
     /**
      * 히스토리 + 상세 내역(Detail) 한 방 조회 (Fetch Join)
