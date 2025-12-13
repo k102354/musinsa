@@ -12,7 +12,7 @@ spring:
   datasource:
     # url: jdbc:h2:mem:point;MODE=MySQL;DB_CLOSE_DELAY=-1
     # 'mem' -> 'file'로 변경, 뒤에 경로 설정 (./는 현재 프로젝트 폴더 의미)
-    url: jdbc:h2:file:./point;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
+    url: jdbc:h2:mem:./point;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
     username: point
     password: point
