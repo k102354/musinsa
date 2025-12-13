@@ -5,6 +5,7 @@ import com.musinsa.payment.point.api.point.dto.PointHistoryResponse;
 import com.musinsa.payment.point.api.point.dto.PointStatisticsResponse;
 import com.musinsa.payment.point.application.point.service.PointAdminSearchService;
 import com.musinsa.payment.point.domain.point.enums.PointType;
+import com.musinsa.payment.point.global.annotation.AdminOnly;
 import com.musinsa.payment.point.global.common.CommonResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -36,6 +37,7 @@ public class PointAdminSearchController {
      * - 규칙: 조회 기간(startDate, endDate)은 필수 파라미터.
      * - 특징: userId가 선택적이어서 전체 사용자 이력 조회가 가능함.
      */
+    @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @GetMapping("/search")
     public ResponseEntity<CommonResponse<Page<PointHistoryResponse>>> searchHistories(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate, // 필수: 시작일
@@ -55,6 +57,7 @@ public class PointAdminSearchController {
      * - Method: GET /api/v1/points/admin/remain/total
      * - 현재 사용가능한 잔액 총액 조회
      */
+    @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @GetMapping("/remain/total")
     public ResponseEntity<CommonResponse<Long>> getTotalRemain() {
         return ResponseEntity.ok(CommonResponse.success(
@@ -67,6 +70,7 @@ public class PointAdminSearchController {
      * - Method: GET /api/v1/points/admin/statistics
      * - 월별/일별 포인트 발행 및 회수 현황 지표 산출.
      */
+    @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @GetMapping("/statistics")
     public ResponseEntity<CommonResponse<List<PointStatisticsResponse>>> getStatistics(
             @RequestParam @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
@@ -82,6 +86,7 @@ public class PointAdminSearchController {
      * - Method: GET /api/v1/points/admin/users/{userId}/balance
      * - 고객 문의 시 해당 유저의 현재 잔액을 확인.
      */
+    @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @GetMapping("/users/{userId}/balance")
     public ResponseEntity<CommonResponse<PointBalanceResponse>> getUserBalance(
             @PathVariable Long userId
