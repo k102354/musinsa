@@ -1,0 +1,49 @@
+###
+POST http://localhost:8080/api/v1/points/earn
+Content-Type: application/json
+
+{
+  "userId": 5000,
+  "amount": 1000,
+  "isManual": false
+}
+
+### 관리자적립
+POST http://localhost:8080/api/v1/points/earn
+Content-Type: application/json
+
+{
+  "userId": 5000,
+  "amount": 1000,
+  "isManual": true
+}
+
+### 적립취소
+POST http://localhost:8080/api/v1/points/earn/cancel
+Content-Type: application/json
+
+{
+  "userId": 5000,
+  "pointItemId": 787326695309261602,
+  "reason": "테스트"
+}
+
+#######################
+POST http://localhost:8080/api/v1/points/use
+Content-Type: application/json
+
+{
+"userId": 5000,
+"amount": 1500,
+"orderId": "test3"
+}
+
+#######################
+POST http://localhost:8080/api/v1/points/use/cancel
+Content-Type: application/json
+
+{
+  "userId": 5000,
+  "cancelAmount": 500,
+  "orderId": "test3"
+}
