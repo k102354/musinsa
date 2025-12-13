@@ -34,6 +34,18 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // TSID: Twitter Snowflake와 유사한 Time-Sorted ID 생성기 (성능 + 가독성)
+    implementation 'io.hypersistence:hypersistence-tsid:2.1.1'
+
+    // [추가] 스프링 배치 스타터
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+
+    // (선택) 테스트 코드용 배치 라이브러리 (JobLauncherTestUtils 등 사용 시 필요)
+    testImplementation 'org.springframework.batch:spring-batch-test'
+
+    // P6Spy: 쿼리 파라미터 바인딩 로그 출력 및 포맷팅
+    implementation 'com.github.gavlyukovskiy:p6spy-spring-boot-starter:1.9.1'
 }
 
 tasks.named('test') {

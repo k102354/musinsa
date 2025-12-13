@@ -2,14 +2,20 @@ spring:
   application:
     name: point
 
+  batch:
+    jdbc:
+      initialize-schema: always # 애플리케이션 실행 시 배치 관련 테이블 자동 생성
+    job:
+      enabled: false # (선택) 앱 실행 시 배치가 자동으로 도는 것을 방지 (스케줄러로만 돌릴 경우 false 추천)
+
   # 1. H2 DB 설정
   datasource:
-    # url: jdbc:h2:mem:musinsa;MODE=MySQL;DB_CLOSE_DELAY=-1
+    # url: jdbc:h2:mem:point;MODE=MySQL;DB_CLOSE_DELAY=-1
     # 'mem' -> 'file'로 변경, 뒤에 경로 설정 (./는 현재 프로젝트 폴더 의미)
-    url: jdbc:h2:file:./musinsa;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
+    url: jdbc:h2:file:./point;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_SERVER=TRUE
     driver-class-name: org.h2.Driver
-    username: musinsa
-    password: musinsa
+    username: point
+    password: point
 
   h2:
     console:
@@ -29,6 +35,16 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
+
+# P6Spy 로깅 설정
+decorator:
+  datasource:
+    p6spy:
+      enable-logging: true
+      # 여러 줄로 출력할지 여부 (true면 보기 편하게 줄바꿈 됨)
+      multiline: true
+      # 로깅 포맷 설정 (실행시간 등 포함)
+      logging: slf4j
 
 musinsa:
   admin-key: YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
