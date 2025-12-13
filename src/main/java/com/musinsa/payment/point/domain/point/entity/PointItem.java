@@ -12,6 +12,11 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
+/**
+ * 포인트 원장 (Point Item)
+ * - 역할: 사용자가 실제로 보유한 '포인트 낱장' 하나하나를 관리하는 핵심 엔티티.
+ * - 잔액, 만료일, 사용 상태 등 모든 재무적 정보를 포함하며, 모든 포인트 사용/취소/만료의 대상이 됨.
+ */
 @Entity
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -35,10 +40,10 @@ public class PointItem extends BaseTimeEntity {
     private long remainAmount;   // 현재 잔액
 
     @Column(nullable = false)
-    private LocalDateTime expireAt;
+    private LocalDateTime expireAt; // 유효기간
 
     @Column(nullable = false)
-    private boolean isManual; // 수기 지급 여부
+    private boolean isManual; // 수기 지급 여부 (차감 우선순위 1순위 결정 요소)
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -55,22 +60,23 @@ public class PointItem extends BaseTimeEntity {
     public PointItem(Long userId, long originalAmount, LocalDateTime expireAt, boolean isManual) {
         if (userId == null) throw BusinessException.invalid("유저 ID는 필수입니다.");
         if (originalAmount < 1) throw BusinessException.invalid("적립액은 1원 이상이어야 합니다.");
+        // 유효기간은 현재보다 미래여야 함
         if (expireAt == null || expireAt.isBefore(LocalDateTime.now())) {
             throw BusinessException.invalid("유효기간은 현재 시간보다 미래여야 합니다.");
         }
 
         this.userId = userId;
         this.originalAmount = originalAmount;
-        this.remainAmount = originalAmount;
+        this.remainAmount = originalAmount; // 초기 잔액 = 최초 지급액
         this.expireAt = expireAt;
         this.isManual = isManual;
         this.status = PointStatus.AVAILABLE;
     }
 
-    // --- 비즈니스 로직 ---
-
     /**
      * 포인트 차감 (사용)
+     * - 잔액을 감소시키고, 잔액이 0이 되면 상태를 EXHAUSTED로 변경함.
+     * - DB 업데이트(Dirty Checking)가 발생하는 핵심 쓰기 메서드.
      */
     public void use(long amount) {
         if (this.status != PointStatus.AVAILABLE) {
@@ -86,15 +92,16 @@ public class PointItem extends BaseTimeEntity {
         this.remainAmount -= amount;
 
         if (this.remainAmount == 0) {
-            this.status = PointStatus.EXHAUSTED;
+            this.status = PointStatus.EXHAUSTED; // 잔액 모두 소진
         }
     }
 
     /**
      * 포인트 복구 (취소 시)
+     * - 사용 취소(USE_CANCEL) 시, 사용되었던 금액만큼 잔액을 복원함.
      */
     public void cancel(long amount) {
-        // 정책: 만료된 포인트는 복구 불가 (필요 시 정책에 따라 수정 가능)
+        // 만료된 포인트는 복구 불가
         if (isExpired()) {
             throw BusinessException.invalid("만료된 포인트는 복구할 수 없습니다.");
         }
@@ -112,6 +119,7 @@ public class PointItem extends BaseTimeEntity {
 
     /**
      * 적립 취소 (관리자/시스템)
+     * - 전액이 남아있을 때만 가능. 남아있는 금액을 0으로 만들고 상태를 CANCELED로 변경.
      */
     public void cancelEarn() {
         if (this.remainAmount != this.originalAmount) {
@@ -121,6 +129,11 @@ public class PointItem extends BaseTimeEntity {
         this.remainAmount = 0;
     }
 
+    /**
+     * 포인트 만료 처리 (배치/스케줄러에서 사용)
+     * - 만료 시 잔액을 0으로, 상태를 EXPIRED로 변경.
+     * - 0원인 포인트는 처리하지 않음.
+     */
     public void expire() {
         if (this.remainAmount > 0 && this.status == PointStatus.AVAILABLE) {
             this.status = PointStatus.EXPIRED;
@@ -132,6 +145,7 @@ public class PointItem extends BaseTimeEntity {
         return LocalDateTime.now().isAfter(this.expireAt);
     }
 
+    // 테스트 코드에서 만료 상태를 강제 설정하기 위한 유틸리티 메서드. 운영 코드에는 불필요
     public void setExpired() {
         this.expireAt = LocalDateTime.now().minusDays(1);
     }

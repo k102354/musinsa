@@ -10,11 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 포인트 정책 관리 컨트롤러
- * <p>
- * 요구사항[적립] 1.1, 1.2, 1.5 (적립 한도, 보유 한도, 만료일자 제어)를 충족하기 위해
- * 외부(API) 요청으로 정책을 동적으로 변경할 수 있도록 제공한다.
- * </p>
+ * 포인트 정책 관리 컨트롤러 (관리자 전용)
+ * - URL Prefix: /api/v1/admin/points/policies
+ * - 역할: 포인트 적립 한도, 보유 한도, 만료일자 등 핵심 비즈니스 정책을 동적으로 변경함.
  */
 @RestController
 @RequestMapping("/api/v1/admin/points/policies")
@@ -24,21 +22,18 @@ public class PointPolicyController {
     private final PointPolicyService pointPolicyService;
 
     /**
-     * 포인트 정책 변경 (Admin)
-     * <p>
-     * 정책 변경 시 DB에 이력을 저장하고,
-     * 실행 중인 어플리케이션의 인메모리 캐시(PointPolicyManager)를 즉시 갱신하여
-     * 서버 재시작 없이 변경 사항을 무중단으로 반영한다.
-     * </p>
+     * 포인트 정책 변경 (Admin - PUT)
+     * - Method: PUT /api/v1/admin/points/policies
+     * - 보안: @AdminOnly 어노테이션으로 관리자 인증/권한 검증을 강제함.
+     * - 특징: 변경 요청 시 DB에 정책 이력을 저장하고, PointPolicyManager를 통해 **실행 중인 서비스의 캐시를 즉시 갱신**하여 무중단 반영을 실현함.
      *
-     * @param request 변경할 정책 값 (@Valid를 통해 1차 검증 수행)
-     * @return 성공 여부 (CommonResponse)
+     * @param request 변경할 정책 값 (부분 변경 가능, @Valid 및 isAtLeastOneFieldPresent() 검증)
+     * @return 성공 응답 (CommonResponse)
      */
     @AdminOnly // AdminAuthorizationInterceptor 헤더의 X-ADMIN-KEY 체크 하도록 설정하는 어노테이션
     @PutMapping
     public ResponseEntity<CommonResponse<Void>> updatePolicy(@RequestBody @Valid PointPolicyUpdateRequest request) {
         pointPolicyService.updatePolicy(request);
-        // 성공 응답: result=true, message="요청이 성공적으로 처리되었습니다.", code=200, data=null
         return ResponseEntity.ok(CommonResponse.success());
     }
 }

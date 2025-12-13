@@ -10,6 +10,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+/**
+ * 포인트 정책 관리 서비스
+ * - 역할: PointPolicy 엔티티를 관리하고, 서비스 전반에 사용되는 정책 캐시(Manager)를 제어함.
+ */
 @Service
 @RequiredArgsConstructor
 public class PointPolicyService {
@@ -18,12 +22,14 @@ public class PointPolicyService {
     private final PointPolicyManager pointPolicyManager;
 
     /**
-     * 최대적립금액, 개인별 소유한도금액, 포인트 만료일자를 설정할 수 있다.
-     * 만약 3개중 한개의 정책만 수정할 경우 이전 정책을 가져와서 입력받은 새로운 정책만 적용한다.
+     * 포인트 정책 동적 업데이트
+     * - 트랜잭션: DB 저장과 캐시 갱신을 원자적으로 처리함.
+     * - 특징: 요청된 파라미터(maxEarnAmount, maxPossessionLimit, defaultExpireDays) 중 NULL인 항목은 기존 정책 값을 유지하여 **부분 업데이트(Partial Update)**를 지원함.
      **/
     @Transactional
     public void updatePolicy(PointPolicyUpdateRequest request) {
 
+        // DTO의 @AssertTrue가 1차 검증하지만, 서비스에서도 한 번 더 확인하여 방어
         if (request.maxEarnAmount() == null &&
                 request.maxPossessionLimit() == null &&
                 request.defaultExpireDays() == null) {

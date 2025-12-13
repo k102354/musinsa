@@ -1,0 +1,29 @@
+### [사용자] 1. 내 포인트 거래내역 조회 (기본)
+# 필수: startDate, endDate (최대 3개월)
+GET http://localhost:8080/api/v1/points/search?startDate=2025-01-01&endDate=2025-03-31
+Content-Type: application/json
+X-User-Id: 5000
+
+### [사용자] 2. 적립(SAVE) 내역만 조회 + 페이징
+# 옵션: type=SAVE, page=0, size=5
+GET http://localhost:8080/api/v1/points/search?startDate=2025-11-01&endDate=2025-12-31&type=USE&page=0&size=5
+Content-Type: application/json
+X-User-Id: 5000
+
+
+### [사용자] 3. 특정 주문번호(refId) 조회
+GET http://localhost:8080/api/v1/points/search?startDate=2025-11-01&endDate=2025-12-31&refId=test3
+Content-Type: application/json
+X-User-Id: 5000
+
+
+### [사용자] 4. 내 포인트 잔액 조회
+GET http://localhost:8080/api/v1/points/balance
+Content-Type: application/json
+X-User-Id: 5000
+
+
+### [사용자] 5. 30일 이내 소멸 예정 포인트 조회 [NEW]
+GET http://localhost:8080/api/v1/points/expiring
+Content-Type: application/json
+X-User-Id: 5000
