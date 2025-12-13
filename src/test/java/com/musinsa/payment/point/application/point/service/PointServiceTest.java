@@ -72,13 +72,13 @@ class PointServiceTest {
         originalHistory.addDetail(PointHistoryDetail.builder().pointItem(itemA).amount(1000L).build());
 
         // [변경] findByRefIdAndTypeWithDetails 호출 시 위에서 만든 history 리턴
-        given(pointHistoryRepository.findByRefIdAndTypeWithDetails(orderId, PointType.USE))
+        given(pointHistoryRepository.findByUserIdAndRefIdAndTypeWithDetails(userId, orderId, PointType.USE))
                 .willReturn(Optional.of(originalHistory));
 
         // 5. [핵심] 이미 1500원이 취소된 상태 (기 취소액)
         // -> C(1000) 전액과 B(500) 만큼이 이미 취소되었다고 가정
         // [수정] 모든 인자를 Matcher 형태로 통일해야 함 (eq 사용)
-        given(pointHistoryRepository.getSumAmountByRefIdAndTypes(eq(orderId), anyList()))
+        given(pointHistoryRepository.getSumAmountByUserIdAndRefIdAndTypes(userId, eq(orderId), anyList()))
                 .willReturn(1500L);
 
         // Policy Mock

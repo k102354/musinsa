@@ -119,7 +119,7 @@ public class PointService {
                 .orElseThrow(() -> BusinessException.notFound("지갑을 찾을 수 없습니다."));
 
         // 2. 중복 검사
-        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(orderId, PointType.USE)) {
+        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(userId, orderId, PointType.USE)) {
             throw BusinessException.invalid("이미 처리된 주문번호입니다.");
         }
 
@@ -186,12 +186,12 @@ public class PointService {
                 .orElseThrow(() -> BusinessException.notFound("지갑을 찾을 수 없습니다."));
 
         // 2. 원본 사용 내역 조회 (상세내역 Fetch Join 필수)
-        PointHistory originalHistory = pointHistoryRepository.findByRefIdAndTypeWithDetails(orderId, PointType.USE)
+        PointHistory originalHistory = pointHistoryRepository.findByUserIdAndRefIdAndTypeWithDetails(userId, orderId, PointType.USE)
                 .orElseThrow(() -> BusinessException.notFound("해당 주문의 포인트 사용 이력이 없습니다."));
 
         // 3. 환불 가능 한도 검증
         // - 일반 취소(USE_CANCEL) + 만료 재적립(RESTORE) 모두 '이미 환불된 금액'으로 간주
-        long totalPreviouslyRefunded = pointHistoryRepository.getSumAmountByRefIdAndTypes(orderId, List.of(PointType.USE_CANCEL, PointType.RESTORE));
+        long totalPreviouslyRefunded = pointHistoryRepository.getSumAmountByUserIdAndRefIdAndTypes(userId, orderId, List.of(PointType.USE_CANCEL, PointType.RESTORE));
 
         if (originalHistory.getAmount() < totalPreviouslyRefunded + cancelAmount) {
             throw BusinessException.invalid("취소 가능한 금액을 초과했습니다.");
