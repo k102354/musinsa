@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class PointController {
 
-    // [변경] Facade 제거 -> Service 직접 주입
     private final PointService pointService;
 
     /**
