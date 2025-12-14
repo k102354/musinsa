@@ -49,17 +49,15 @@
 
 ## 🏗 Domain Model
 
-시스템은 **집계(Aggregate)**와 **원장(Ledger)**, **기록(History)**을 명확히 분리하여 설계되었습니다.
+### 1. Entity Relationship Diagram (ERD)
+![ERD](src/main/resources/erd/point_erd.png)
 
-### Core Entities (`BaseTimeEntity` 상속)
 
-| Entity | Role | Key Fields                                                                                   |
-| :--- | :--- |:---------------------------------------------------------------------------------------------|
-| **`UserPointWallet`** | **[지갑]** 총 잔액 관리 | • `balance`: 동시성 제어의 진입점<br>• **Lock**: 비관적 락 적용 대상                                          |
-| **`PointItem`** | **[원장]** 개별 포인트 낱장 | • `remainAmount`: 잔액<br>• `expireAt`: 만료일<br>• `status`: `AVAILABLE`, `EXHAUSTED`, `EXPIRED` |
-| **`PointHistory`** | **[영수증]** 불변 기록 (Master) | • `type`: `EARN`, `USE`, `RESTORE`, `EXPIRE` 등<br>• `refId`: 주문번호, 이벤트 적립번호 등 (멱등성 키)        |
-| **`PointHistoryDetail`** | **[상세]** 원장 연결 (Detail) | • `pointItem`: 사용된 원장 매핑<br>• `restoredFromItemId`: 재적립 시 원본 추적                              |
-
+| 관계 (Relationship) | 설명 (Description) |
+| :--- | :--- |
+| **Wallet 1 : N Item** | 사용자의 지갑(`Wallet`)은 유효기간이 서로 다른 여러 개의 포인트 원장(`Item`)을 보유합니다. (집계와 원장의 분리) |
+| **History 1 : N Detail** | 한 번의 포인트 거래(`History`)는 여러 원장에서 차감된 상세 내역(`Detail`)으로 구성됩니다. (Master-Detail 구조) |
+| **Item 1 : N Detail** | 하나의 포인트 원장(`Item`)은 여러 번에 걸쳐 나누어 사용(`Detail`)될 수 있습니다. 이를 통해 자금의 흐름을 1원 단위까지 추적합니다. |
 ---
 
 ## 🔌 API Specification

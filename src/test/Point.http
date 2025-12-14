@@ -6,7 +6,7 @@ Content-Type: application/json
   "userId": 5000,
   "amount": 1000,
   "isManual": false,
-  "refId" : "ORD_00001"
+  "refId" : "ORD_00004"
 }
 
 ### 관리자적립
@@ -35,9 +35,9 @@ POST http://localhost:8080/api/v1/points/use
 Content-Type: application/json
 
 {
-"userId": 5001,
-"amount": 1000,
-"orderId": "test3"
+"userId": 5000,
+"amount": 3000,
+"orderId": "test4"
 }
 
 #######################
@@ -46,6 +46,6 @@ Content-Type: application/json
 
 {
   "userId": 5000,
-  "cancelAmount": 500,
-  "orderId": "test3"
+  "cancelAmount": 3000,
+  "orderId": "test4"
 }

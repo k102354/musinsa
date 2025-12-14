@@ -41,7 +41,7 @@ public class PointHistory extends BaseTimeEntity {
     private long amount; // 이 거래의 총액
 
     @Column(name = "ref_id")
-    private String refId; // 주문번호
+    private String refId; // 주문번호, 이벤트 적립번호 등
 
     // Master-Detail 관계 (영속성 전이: History 저장 시 Detail도 같이 저장됨)
     // History가 Detail의 생명주기를 관리함 (orphanRemoval = true)
