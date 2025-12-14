@@ -20,14 +20,15 @@
 
 ### 1. 동시성 제어 및 데이터 무결성 (Concurrency & Integrity)
 - **비관적 락(Pessimistic Lock)**: `UserPointWallet` 조회 시 `SELECT ... FOR UPDATE`를 사용하여 잔액 갱신 시 발생하는 경쟁 조건(Race Condition)을 원천 차단했습니다.
-- **멱등성(Idempotency) 보장**: `Order ID`와 `PointType` 조합의 유니크 제약 조건을 통해 네트워크 지연으로 인한 중복 결제 요청을 방어합니다.
+- **멱등성(Idempotency) 보장**: `User ID`와 `Ref Id` 조합에 대한 복합 인덱스(idx_user_ref)를 활용한 중복 검사 로직을 통해 네트워크 지연으로 인한 중복 결제 요청을 방어합니다.
 
 ### 2. 스마트 차감 & 정교한 환불 로직
 - **복합 우선순위 차감**: 포인트를 사용할 때 다음 순서로 차감하여 유저 이익을 극대화합니다.
     1. 관리자 수기 지급분 (`isManual=true`) 우선 소진
     2. 만료 임박 포인트 (`ExpireAt ASC`) 순차 소진
-- **Edge Case 환불 (Re-issue)**:
-    - 사용 취소 시점에 **이미 만료된 포인트**가 포함되어 있다면, 원본을 단순 복구하지 않고 **신규 유효기간을 가진 포인트로 재적립(RESTORE)**합니다.
+- **정교한 환불 정책 **:
+    - **부분 취소 지원 **: 하나의 주문 건에 대해 여러 번 취소가 발생할 경우, **기 취소된 금액만큼은 건너뛰고(Skip)** 남은 잔액 범위 내에서만 정확히 환불 처리합니다.
+    - **만료 포인트 재적립 (Re-issue)**: 환불 시점에 **이미 만료된 포인트**가 포함되어 있다면, 원본을 복구하는 대신 **신규 유효기간을 가진 포인트로 재적립(RESTORE)**합니다.
 
 ### 3. 대용량 만료 처리 (Batch Processing)
 - **Spring Batch**를 사용하여 매일 자정(`00:00:00`) 만료된 포인트를 일괄 소멸 처리합니다.
@@ -36,7 +37,7 @@
 
 ### 4. 보안 및 정책 관리 (Security & Policy)
 - **Custom Interceptor**: `@AdminOnly` 어노테이션과 `HandlerInterceptor`를 통해 관리자 API 접근 권한(`X-ADMIN-KEY`)을 중앙에서 통제합니다.
-- **동적 정책 관리**: 적립 한도, 보유 한도 등의 정책을 운영 중단 없이 실시간으로 변경(`Partial Update`)할 수 있습니다.
+- **동적 정책 관리**: 적립 한도, 보유 한도, 1회 최대적립 한도 등의 정책을 운영 중단 없이 실시간으로 `변경`할 수 있습니다.
 
 ### 5. Performance & Architecture Highlights
 - **TSID (Time-Sorted Unique Identifier) 적용**:
@@ -161,11 +162,65 @@
 * JDK 21+
 * Gradle 8.x
 
-### Build & Run
-```bash
-# 1. 빌드
-./gradlew clean build
+## ⚙️ Build & Run
 
-# 2. 실행
+이 프로젝트는 **Java 21**과 **Gradle**을 기반으로 동작합니다. 로컬 환경에서 실행하기 위해 아래 설정을 진행해 주세요.
+
+### 1. Prerequisites (환경 설정)
+
+#### ✅ Java 21 Installation (Required)
+프로젝트 실행을 위해 **JDK 21** 설치가 필수입니다.
+
+* **Windows/Mac (직접 다운로드)**:
+    * [Oracle JDK 21 다운로드](https://www.oracle.com/java/technologies/downloads/#java21)
+    * 또는 [Eclipse Temurin(OpenJDK) 21 다운로드](https://adoptium.net/temurin/releases/?version=21)
+
+* **Mac (Homebrew 사용 시)**:
+    ```bash
+    brew install openjdk@21
+    ```
+
+* **SDKMAN! (Linux/Mac 권장)**:
+    ```bash
+    sdk install java 21.0.2-temurin
+    ```
+
+#### ✅ Gradle Installation (Optional)
+이 프로젝트는 **Gradle Wrapper**(`gradlew`)를 포함하고 있어 별도의 Gradle 설치 없이도 빌드가 가능합니다.
+하지만, 로컬에 Gradle을 직접 설치하고 싶다면 아래 방법을 따르세요.
+
+* **Mac (Homebrew)**:
+    ```bash
+    brew install gradle
+    ```
+* **Direct Download**: [Gradle 설치 가이드](https://gradle.org/install/)
+
+---
+
+### 2. Project Build
+
+프로젝트 루트 경로에서 다음 명령어를 실행하여 의존성을 설치하고 빌드합니다.
+(Gradle이 설치되지 않은 경우, 포함된 `gradlew` 스크립트를 사용하세요.)
+
+* **Mac / Linux**:
+    ```bash
+    # 실행 권한 부여
+    chmod +x gradlew
+    
+    # 빌드 (테스트 포함)
+    ./gradlew clean build
+    ```
+
+* **Windows (CMD/PowerShell)**:
+    ```cmd
+    gradlew.bat clean build
+    ```
+
+---
+
+### 3. Run Application
+
+빌드가 성공적으로 완료되면, 생성된 JAR 파일을 실행합니다.
+
+```bash
 java -jar build/libs/musinsa-point-api-0.0.1.jar
-```

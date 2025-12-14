@@ -51,3 +51,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+bootJar {
+    archiveBaseName = 'musinsa-point-api'
+    archiveVersion = '0.0.1'
+}
