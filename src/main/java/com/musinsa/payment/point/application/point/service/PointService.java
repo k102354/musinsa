@@ -31,24 +31,36 @@ public class PointService {
     private final PointPolicyManager policyManager;
 
     /**
-     * 1. 포인트 적립 (SAVE)
+     * 1. 포인트 적립 (EARN, ADMIN_GRANT)
      * - 트랜잭션: 하나의 트랜잭션으로 Wallet, Item, History 모두 저장/업데이트
      */
     @Transactional
-    public void earn(Long userId, long amount, boolean isManual) {
-        // 1. 지갑 조회 (없으면 생성): 잔액 조회 시 Lock이 필요 없으므로 findByUserId 사용
-        UserPointWallet userPointWallet = userPointWalletRepository.findByUserId(userId)
-                .orElseGet(() -> userPointWalletRepository.save(new UserPointWallet(userId, 0L)));
+    public void earn(Long userId, long amount, boolean isManual, String refId) {
 
-        // 2. 정책 검증
+        // 1. 지갑조회(Lock)
+        UserPointWallet userPointWallet = userPointWalletRepository.findByUserIdForUpdate(userId)
+                .orElseGet(() -> {
+                    // 유저가 없는 신규 생성의 경우, 락을 걸 수 없으므로 바로 저장
+                    // (단, 이 경우에도 Unique Constraint가 없다면 동시 생성 문제가 있을 수 있으나,
+                    // 보통 회원 가입 후 적립이므로 지갑은 존재한다고 가정)
+                    return userPointWalletRepository.save(new UserPointWallet(userId, 0L));
+                });
+
+        // 2. 중복적립 체크
+        PointType type = isManual ? PointType.ADMIN_GRANT : PointType.EARN;
+        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(userId, refId, type)) {
+            throw BusinessException.invalid("이미 처리된 적립 요청입니다.");
+        }
+
+        // 3. 정책 검증
         if (amount < policyManager.getMinEarnAmount() || amount > policyManager.getMaxEarnAmount()) {
             throw BusinessException.invalid("적립 가능 금액 범위를 벗어났습니다.");
         }
 
-        // 3. 지갑 잔액 증가 (내부에서 보유 한도 초과 체크)
+        // 4. 지갑 잔액 증가 (내부에서 보유 한도 초과 체크)
         userPointWallet.earn(amount, policyManager.getMaxPossessionLimit());
 
-        // 4. 아이템 생성: 적립 정책에 따른 유효 기간 부여
+        // 5. 아이템 생성: 적립 정책에 따른 유효 기간 부여
         PointItem item = PointItem.builder()
                 .userId(userId)
                 .originalAmount(amount)
@@ -57,16 +69,16 @@ public class PointService {
                 .build();
         pointItemRepository.save(item);
 
-        // 5. 히스토리 생성 (Master)
+        // 6. 히스토리 생성 (Master)
         PointHistory history = PointHistory.builder()
                 .userId(userId)
                 .type(isManual ? PointType.ADMIN_GRANT : PointType.EARN)
                 .amount(amount)
                 // 적립의 참조키는 해당 PointItem ID를 사용 (이벤트/주문이 없는 경우)
-                .refId(String.valueOf(item.getId()))
+                .refId(String.valueOf(refId))
                 .build();
 
-        //6. 상세 내역 연결 (Detail) - 적립된 아이템과 1:1 연결
+        //7. 상세 내역 연결 (Detail) - 적립된 아이템과 1:1 연결
         history.addDetail(PointHistoryDetail.builder()
                 .pointItem(item)
                 .amount(amount)
@@ -123,13 +135,13 @@ public class PointService {
      * - 핵심 로직: PointItem 차감 우선순위 적용 (Manual DESC, ExpireAt ASC)
      */
     @Transactional
-    public void use(Long userId, long amount, String orderId) {
+    public void use(Long userId, long amount, String refId) {
         // 1. 지갑 조회 (비관적 락으로 동시성 제어)
         UserPointWallet userPointWallet = userPointWalletRepository.findByUserIdForUpdate(userId)
                 .orElseThrow(() -> BusinessException.notFound("지갑을 찾을 수 없습니다."));
 
         // 2. 중복 검사 (멱등성 확보): 해당 주문번호로 이미 USE 트랜잭션이 발생했는지 체크
-        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(userId, orderId, PointType.USE)) {
+        if (pointHistoryRepository.existsByUserIdAndRefIdAndType(userId, refId, PointType.USE)) {
             throw BusinessException.invalid("이미 처리된 주문번호입니다.");
         }
 
@@ -141,7 +153,7 @@ public class PointService {
                 .userId(userId)
                 .type(PointType.USE)
                 .amount(amount)
-                .refId(orderId)
+                .refId(refId)
                 .build();
 
         // 5. 차감할 아이템 조회

@@ -39,25 +39,32 @@ class PointConcurrencyTest {
     }
 
     @Test
-    @DisplayName("1. [적립] 동시에 5번(1000원씩) 적립 요청")
-    void concurrent_earn_success() throws InterruptedException {
+    @DisplayName("1. [적립] 동일한 주문번호로 동시에 5번 적립 요청 시 1번만 성공해야 한다 (중복 방어)")
+    void concurrent_earn_duplicate_prevention() throws InterruptedException {
         // given
         Long userId = 5000L;
         long amount = 1000L;
         int threadCount = 5;
+        String refId = "DUPLICATE_ORDER_ID"; // [핵심] 동일한 주문번호 사용
 
         userPointWalletRepository.save(new UserPointWallet(userId, 0L));
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
 
+        AtomicInteger successCount = new AtomicInteger(0);
+        AtomicInteger failCount = new AtomicInteger(0);
+
         // when
         for (int i = 0; i < threadCount; i++) {
             executorService.submit(() -> {
                 try {
-                    pointService.earn(userId, amount, false);
+                    // 동일한 refId로 동시에 요청
+                    pointService.earn(userId, amount, false, refId);
+                    successCount.incrementAndGet();
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    // "이미 처리된 적립 요청입니다" 예외 발생 예상
+                    failCount.incrementAndGet();
                 } finally {
                     latch.countDown();
                 }
@@ -69,10 +76,14 @@ class PointConcurrencyTest {
         // then
         UserPointWallet wallet = userPointWalletRepository.readByUserId(userId).orElseThrow();
 
-        assertThat(wallet.getBalance()).isEqualTo(5000L);
-        // 분산 환경이나 Retry가 없다면 5000원이 아닐 수 있음 (검증 로직은 상황에 맞게 조정 필요)
-        // 여기서는 호출 코드가 정상인지 확인하는 목적으로 유지
-        System.out.println("Final Balance: " + wallet.getBalance());
+        // 검증 1: 성공 횟수는 1회여야 함
+        assertThat(successCount.get()).isEqualTo(1);
+
+        // 검증 2: 실패 횟수는 4회여야 함
+        assertThat(failCount.get()).isEqualTo(4);
+
+        // 검증 3: 잔액은 1번만 적립된 1000원이어야 함 (5000원이면 실패)
+        assertThat(wallet.getBalance()).isEqualTo(1000L);
     }
 
     @Test
@@ -82,8 +93,9 @@ class PointConcurrencyTest {
         Long userId = 5001L;
         long useAmount = 1000L;
         int threadCount = 3;
+        String refId = "ORD_00001";
 
-        pointService.earn(userId, 3000L, false);
+        pointService.earn(userId, 3000L, false, refId);
 
         ExecutorService executorService = Executors.newFixedThreadPool(threadCount);
         CountDownLatch latch = new CountDownLatch(threadCount);
@@ -122,7 +134,7 @@ class PointConcurrencyTest {
     void duplicate_order_use() throws InterruptedException {
         // given
         Long userId = 1L;
-        pointService.earn(userId, 1000L, false); // 초기 잔액 1000원
+        pointService.earn(userId, 1000L, false, "ORD_TEST001"); // 초기 잔액 1000원
 
         int threadCount = 3;
         // 멀티스레드 이용을 위한 ExecutorService (비동기 작업 실행)

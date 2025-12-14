@@ -1,13 +1,12 @@
 package com.musinsa.payment.point.application.point;
 
-import com.musinsa.payment.point.application.point.service.PointService; // [변경] Facade -> Service
+import com.musinsa.payment.point.application.point.service.PointService;
 import com.musinsa.payment.point.domain.point.entity.UserPointWallet;
 import com.musinsa.payment.point.domain.point.repository.UserPointWalletRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.Rollback;
 import org.springframework.transaction.annotation.Transactional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,7 +30,7 @@ class PointIntegrationTest {
         String orderId = "ORD-TEST-001";
 
         // 1. 10,000원 적립
-        pointService.earn(userId, 10000L, false);
+        pointService.earn(userId, 10000L, false, orderId);
 
         // 2. 3,000원 사용
         pointService.use(userId, 3000L, orderId);

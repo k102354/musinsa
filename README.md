@@ -20,7 +20,7 @@
 
 ### 1. 동시성 제어 및 데이터 무결성 (Concurrency & Integrity)
 - **비관적 락(Pessimistic Lock)**: `UserPointWallet` 조회 시 `SELECT ... FOR UPDATE`를 사용하여 잔액 갱신 시 발생하는 경쟁 조건(Race Condition)을 원천 차단했습니다.
-- **멱등성(Idempotency) 보장**: `User ID`와 `Ref Id` 조합에 대한 복합 인덱스(idx_user_ref)를 활용한 중복 검사 로직을 통해 네트워크 지연으로 인한 중복 결제 요청을 방어합니다.
+- **멱등성(Idempotency) 보장**: `User ID`와 `Ref Id` 조합에 대한 복합 인덱스(idx_user_ref)를 활용한 중복 검사 로직을 통해 네트워크 지연으로 인한 중복 적립/결제 요청을 방어합니다.
 
 ### 2. 스마트 차감 & 정교한 환불 로직
 - **복합 우선순위 차감**: 포인트를 사용할 때 다음 순서로 차감하여 유저 이익을 극대화합니다.
@@ -53,12 +53,12 @@
 
 ### Core Entities (`BaseTimeEntity` 상속)
 
-| Entity | Role | Key Fields |
-| :--- | :--- | :--- |
-| **`UserPointWallet`** | **[지갑]** 총 잔액 관리 | • `balance`: 동시성 제어의 진입점<br>• **Lock**: 비관적 락 적용 대상 |
+| Entity | Role | Key Fields                                                                                   |
+| :--- | :--- |:---------------------------------------------------------------------------------------------|
+| **`UserPointWallet`** | **[지갑]** 총 잔액 관리 | • `balance`: 동시성 제어의 진입점<br>• **Lock**: 비관적 락 적용 대상                                          |
 | **`PointItem`** | **[원장]** 개별 포인트 낱장 | • `remainAmount`: 잔액<br>• `expireAt`: 만료일<br>• `status`: `AVAILABLE`, `EXHAUSTED`, `EXPIRED` |
-| **`PointHistory`** | **[영수증]** 불변 기록 (Master) | • `type`: `EARN`, `USE`, `RESTORE`, `EXPIRE` 등<br>• `refId`: 주문번호 (멱등성 키) |
-| **`PointHistoryDetail`** | **[상세]** 원장 연결 (Detail) | • `pointItem`: 사용된 원장 매핑<br>• `restoredFromItemId`: 재적립 시 원본 추적 |
+| **`PointHistory`** | **[영수증]** 불변 기록 (Master) | • `type`: `EARN`, `USE`, `RESTORE`, `EXPIRE` 등<br>• `refId`: 주문번호, 이벤트 적립번호 등 (멱등성 키)        |
+| **`PointHistoryDetail`** | **[상세]** 원장 연결 (Detail) | • `pointItem`: 사용된 원장 매핑<br>• `restoredFromItemId`: 재적립 시 원본 추적                              |
 
 ---
 
@@ -69,12 +69,12 @@
 ### 1. Point Command API (User/System)
 > **Endpoint**: `/api/v1/points`
 
-| Method | URI | Description | Request Body |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/earn` | **포인트 적립**<br>정책(한도) 체크 후 적립 | `{ "userId": 1, "amount": 1000, "isManual": false }` |
-| `POST` | `/use` | **포인트 사용**<br>주문 연동 및 차감 | `{ "userId": 1, "amount": 500, "orderId": "ORD-001" }` |
-| `POST` | `/use/cancel` | **사용 취소 (환불)**<br>만료 여부에 따라 분기 처리 | `{ "userId": 1, "cancelAmount": 500, "orderId": "ORD-001" }` |
-| `POST` | `/earn/cancel` | **적립 취소**<br>미사용 건에 한해 회수 | `{ "userId": 1, "pointItemId": 105 }` |
+| Method | URI | Description | Request Body                                                            |
+| :--- | :--- | :--- |:------------------------------------------------------------------------|
+| `POST` | `/earn` | **포인트 적립**<br>정책(한도) 체크 후 적립 | `{ "userId": 1, "amount": 1000, "isManual": false, "refId" : ORD_001 }` |
+| `POST` | `/use` | **포인트 사용**<br>주문 연동 및 차감 | `{ "userId": 1, "amount": 500, "orderId": "ORD-001" }`                  |
+| `POST` | `/use/cancel` | **사용 취소 (환불)**<br>만료 여부에 따라 분기 처리 | `{ "userId": 1, "cancelAmount": 500, "orderId": "ORD-001" }`            |
+| `POST` | `/earn/cancel` | **적립 취소**<br>미사용 건에 한해 회수 | `{ "userId": 1, "pointItemId": 105 }`                                   |
 
 ### 2. User Query API
 > **Endpoint**: `/api/v1/points` (Header: `X-User-Id`)

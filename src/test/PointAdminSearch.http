@@ -16,17 +16,23 @@ GET http://localhost:8080/api/v1/points/admin/search?startDate=2024-01-01&endDat
 Content-Type: application/json
 X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
 
-### [관리자] 4. 시스템 전체 잔액 조회
+### [관리자] 4. 특정 타입(type) 검색
+# 필수: startDate, endDate 옵션: type
+GET http://localhost:8080/api/v1/points/admin/search?startDate=2024-01-01&endDate=2025-12-31&type=EARN
+Content-Type: application/json
+X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
+
+### [관리자] 5. 시스템 전체 잔액 조회
 GET http://localhost:8080/api/v1/points/admin/remain/total
 Content-Type: application/json
 X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
 
-### [관리자] 5. 기간별 포인트 통계 (적립/사용 합계)
+### [관리자] 6. 기간별 포인트 통계 (적립/사용 합계)
 GET http://localhost:8080/api/v1/points/admin/statistics?startDate=2025-01-01&endDate=2025-12-31
 Content-Type: application/json
 X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw
 
-### [관리자] 6. 특정 사용자 잔액 조회
+### [관리자] 7. 특정 사용자 잔액 조회
 GET http://localhost:8080/api/v1/points/admin/users/5000/balance
 Content-Type: application/json
 X-ADMIN-KEY:YlMh3HoiSdt1p_qUFhtl0gPQhzid4_OklZWZeX3vu0SaXusFvAaVdoWcobeCLDkzesQlKBEzuT3A4eT-A6zFcw

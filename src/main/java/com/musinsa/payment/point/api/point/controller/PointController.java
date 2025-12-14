@@ -32,12 +32,12 @@ public class PointController {
      * 포인트 적립 API (EARN)
      * - Method: POST /api/v1/points/earn
      * - 역할: 주문 완료, 이벤트 참여 등 적립 이벤트 발생 시 호출됨.
-     * - 특징: 요청 DTO(@Valid)를 통해 userId, amount, isManual 유효성 검사 수행.
+     * - 특징: 요청 DTO(@Valid)를 통해 userId, amount, isManual, refId(이벤트 적립번호) 유효성 검사 수행.
      */
     @PostMapping("/earn")
     public ResponseEntity<CommonResponse<Void>> earn(@RequestBody @Valid PointEarnRequest request) {
         log.info("PointController.earn request : {}", request);
-        pointService.earn(request.userId(),request.amount(), request.isManual());
+        pointService.earn(request.userId(),request.amount(), request.isManual(), request.refId());
         return ResponseEntity.ok(CommonResponse.success());
     }
 

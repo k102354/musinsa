@@ -5,7 +5,8 @@ Content-Type: application/json
 {
   "userId": 5000,
   "amount": 1000,
-  "isManual": false
+  "isManual": false,
+  "refId" : "ORD_00001"
 }
 
 ### 관리자적립
@@ -15,7 +16,8 @@ Content-Type: application/json
 {
   "userId": 5001,
   "amount": 1000,
-  "isManual": true
+  "isManual": true,
+  "refId" : "ORD_00002"
 }
 
 ### 적립취소
@@ -23,8 +25,8 @@ POST http://localhost:8080/api/v1/points/earn/cancel
 Content-Type: application/json
 
 {
-  "userId": 5000,
-  "pointItemId": 787326695309261602,
+  "userId": 5001,
+  "pointItemId": 788082542670602298,
   "reason": "테스트"
 }
 
@@ -34,7 +36,7 @@ Content-Type: application/json
 
 {
 "userId": 5001,
-"amount": 1500,
+"amount": 1000,
 "orderId": "test3"
 }
 
