@@ -6,6 +6,7 @@ import com.musinsa.payment.point.domain.point.enums.PointType;
 import com.musinsa.payment.point.domain.point.repository.*;
 import com.musinsa.payment.point.global.error.BusinessException;
 import com.musinsa.payment.point.global.policy.PointPolicyManager;
+import com.musinsa.payment.point.global.util.TsidUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -302,7 +303,7 @@ public class PointService {
                     .userId(userId)
                     .type(PointType.RESTORE)
                     .amount(currentRestoreAmount)
-                    .refId(orderId)
+                    .refId(orderId + "_" + TsidUtil.nextId())
                     .build();
 
             restoreDetails.forEach(restoreHistory::addDetail);

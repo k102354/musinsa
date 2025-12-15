@@ -55,4 +55,6 @@ public interface PointItemRepository extends JpaRepository<PointItem, Long> {
      */
     @Query("SELECT COALESCE(SUM(i.remainAmount), 0) FROM PointItem i WHERE i.status = :status")
     long sumTotalRemainAmountByStatus(@Param("status") PointStatus status);
+
+    List<PointItem> findByUserId(long userId);
 }

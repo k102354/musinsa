@@ -1,6 +1,8 @@
 package com.musinsa.payment.point.global.config;
 
 import com.musinsa.payment.point.application.point.service.PointService;
+import com.musinsa.payment.point.domain.point.entity.PointItem;
+import com.musinsa.payment.point.domain.point.repository.PointItemRepository;
 import com.musinsa.payment.point.domain.point.repository.UserPointWalletRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +11,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -20,13 +23,14 @@ public class DataInitializer {
 
     private final PointService pointService;
     private final UserPointWalletRepository userPointWalletRepository;
+    private final PointItemRepository pointItemRepository; // [추가] 만료일 조작을 위해 필요
 
     @Bean
     public CommandLineRunner initData() {
         return args -> {
             // 이미 데이터가 있다면 초기화 스킵 (재실행 시 중복 방지)
             if (userPointWalletRepository.count() > 0) {
-                log.info("ℹ️ [DataInitializer] 이미 데이터가 존재하여 초기화를 건너뜁니다.");
+                log.info("이미 데이터가 존재하여 초기화를 건너뜁니다.");
                 return;
             }
 
@@ -51,10 +55,10 @@ public class DataInitializer {
                     pointService.use(userId, amount, orderId);
                 } catch (Exception e) {
                     // 잔액 부족 등으로 실패할 수 있음 (자연스러운 현상)
-                    log.debug("⚠️ 주문 실패 (잔액 부족 등): User={}, Amt={}", userId, amount);
+                    log.debug("주문 실패 (잔액 부족 등): User={}, Amt={}", userId, amount);
                 }
             }
-            log.info("✅ [Sales] 상품 주문 20건 시뮬레이션 완료");
+            log.info("상품 주문 20건 시뮬레이션 완료");
 
             // 3. 고객 변심으로 인한 환불 (부분 취소)
             // 1번 유저
@@ -69,6 +73,35 @@ public class DataInitializer {
             pointService.cancelUse(targetUser, refundOrderId, 1000L);
 
             log.info("1번 유저 환불(부분 취소) 시나리오 완료");
+
+            // =========================================================
+            // 4.만료된 포인트 재적립(부활) 시나리오 - 2번 유저
+            // =========================================================
+            long expiredUser = 2L;
+            String expiredOrderId = "ORD-REFUND-EXPIRED";
+
+            // A. 적립 (일반 적립)
+            pointService.earn(expiredUser, 2000L, false, "EARN-FOR-EXPIRED-TEST");
+
+            // B. 사용 (전액 사용)
+            pointService.use(expiredUser, 2000L, expiredOrderId);
+
+            // C.강제 만료 처리
+            List<PointItem> items = pointItemRepository.findByUserId(expiredUser);
+            for (PointItem item : items) {
+                // PointItem 엔티티에 있는 테스트용 setExpired() 메서드 활용 (expireAt을 어제로 설정)
+                if (item.getRemainAmount() == 0 && !item.isExpired()) { // 이미 사용된 것만 만료시킴
+                    item.setExpired();
+                    pointItemRepository.save(item);
+                }
+            }
+            log.info("2번 유저의 사용 포인트를 강제로 만료 처리");
+
+            // D. 취소 (환불) 요청
+            // 시스템은 원본이 만료되었음을 감지하고 'RESTORE' 타입으로 신규 적립해야 합니다.
+            pointService.cancelUse(expiredUser, expiredOrderId, 2000L);
+
+            log.info(" 2번 유저 만료된 포인트 환불(재적립) 시나리오 완료");
 
             log.info("모든 예시 데이터 생성이 완료되었습니다.");
         };
