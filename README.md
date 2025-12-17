@@ -32,7 +32,6 @@
 
 ### 3. 대용량 만료 처리 (Batch Processing)
 - **Spring Batch**를 사용하여 매일 자정(`00:00:00`) 만료된 포인트를 일괄 소멸 처리합니다.
-- **Memory Efficient**: `JpaCursorItemReader`를 도입하여 대량의 데이터를 처리할 때도 OOM(Out Of Memory) 없이 안정적으로 동작합니다.
 - **Traceability**: 만료 처리 시에도 `EXPIRE` 타입의 히스토리를 남겨 자금 흐름을 투명하게 관리합니다.
 
 ### 4. 보안 및 정책 관리 (Security & Policy)
@@ -99,7 +98,6 @@
 `PointExpireJob`은 매일 자정 실행되어 만료된 포인트의 상태를 변경하고 잔액을 차감합니다.
 
 * **Scheduler**: `PointJobScheduler` (`@Scheduled(cron = "0 0 0 * * *")`)
-* **Reader**: `JpaCursorItemReader`를 사용하여 메모리 부하 없이 데이터를 스트리밍합니다.
 * **Writer**:
     1. `PointItem` 상태 변경 (`AVAILABLE` -> `EXPIRED`)
     2. `UserPointWallet` 총 잔액 차감
